@@ -42,7 +42,7 @@ migrationBuilder.AddColumn<string>(
     type: "nvarchar(max)", //  MAX even if you specify 4001
     nullable: true);
 ```
-.NET Core provides us with the [DbCommandInterceptor](https://docs.microsoft.com/en-us/dotnet/api/system.data.entity.infrastructure.interception.dbcommandinterceptor?view=entity-framework-6.2.0&viewFallbackFrom=entity-framework-5.0.5) and this has been implemented to overcome but not entirely solve this current issue. Keep in mind, we are opting to use SQLite to provide a more granular testing environment. Now, if I want to test for entity property/s that exceed string lengths of 4000 characters, I cannot. However, another strategy would be to test with model state validation when testing endpoints.
+.NET Core provides us with the [DbCommandInterceptor](https://docs.microsoft.com/en-us/dotnet/api/system.data.entity.infrastructure.interception.dbcommandinterceptor?view=entity-framework-6.2.0&viewFallbackFrom=entity-framework-5.0.5) and this has been implemented to overcome but not entirely solve this current issue. Keep in mind, we are opting to use SQLite to provide a more granular testing environment. Now, if I want to test for entity property/s with varying lengths exceeding 4000 characters, I cannot. I can only test the default I have set in the SqliteCommandInterceptor. However, another strategy would be to test with model state validation when testing endpoints.
 
 Other side effects include:
 - In older versions of .NET core such as 3.0.1 LTS, migrations have to be wrapped in conditionals
