@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entity.Services.Tests.Helpers;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ namespace Entity.Services.Tests.SqliteInMemoryProductServices
             _options = new DbContextOptionsBuilder<PocDbContext>()
                 .EnableSensitiveDataLogging()
                 .UseSqlite(_connection)
+                .AddInterceptors(new SqliteCommandInterceptor()) //  Apply bespoke incompatibilities.
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
                 .Options;
 

@@ -22,11 +22,27 @@ Unit testing a data access layer utilizing .NET Core’s Entity Framework can be
 | Concurrency | Supported | Supported
 | Migrations | Supported | In older versions of .NET Core 3.0.1 LTS, I found on occasions where a migration generated an incompatible SQL command with Sqlite,  I found I had to wrap migrations in conditionals ```if(migrationBuilder.IsSqlServer()) { do normal migration } else { drop table, then create }``` In this POC, I’m using .NET Core 5.0.5 and was unable to reproduce. Kudos to the team managing this framework.
 | Seed / Migrate Data | Supported | I did not test seeding in this POC. Whilst I prefer not to seed or migrate data within migrations, sometimes you have to do what you have to do. It is recommended to implement the [MigrationBuilder](https://docs.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.migrations.migrationbuilder?view=efcore-5.0) methods (.InsertData(), .UpdateData(), …) as opposed to using ```migrationBuilder.Sql(native TSQl commands)``` and let the framework attempt to translate between native MS TSQL & Sqlite
+| Other discovered incompatibilities | | In version 5.0.5 there is no support for nvarchar(max). Recently discovered by a work colleague just as I published this repo. Luckily, they also discovered a work around. However now I can't test for properties exceeding 4000 characters. 
 
 ### What I have discovered so far
 Based on the Pros & Cons table, Sqlite looks very attractive however, there are hidden side effects. Whilst unique constraints can be tested for and a DbUpdateException is thrown, the sub exception differs and so does the error number: 
 - MS SqlException: 2601 
 - Sqlite SqliteException:  19
+
+NVARCHAR(MAX):
+SQLite does not know what nvarchar(max) means and generates the following error: 
+```
+Microsoft.Data.Sqlite.SqliteException : SQLite Error 1: 'near "max": syntax error'.
+```
+If you set a string length constraint greater then 4000, Code First will add:
+```
+migrationBuilder.AddColumn<string>(
+    name: "Data",
+    table: "Products",
+    type: "nvarchar(max)", //  MAX even if you specify 4001
+    nullable: true);
+```
+.NET Core provides us with the [DbCommandInterceptor](https://docs.microsoft.com/en-us/dotnet/api/system.data.entity.infrastructure.interception.dbcommandinterceptor?view=entity-framework-6.2.0&viewFallbackFrom=entity-framework-5.0.5) and this has been implemented to overcome but not entirely solve this current issue. Keep in mind, we are opting to use SQLite to provide a more granular testing environment. Now, if I want to test for entity property/s that exceed string lengths of 4000 characters, I cannot. However, another strategy would be to test with model state validation when testing endpoints.
 
 Other side effects include:
 - In older versions of .NET core such as 3.0.1 LTS, migrations have to be wrapped in conditionals
