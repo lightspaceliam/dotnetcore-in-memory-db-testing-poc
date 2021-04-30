@@ -23,6 +23,13 @@ namespace Entities
         public string Colour { get; set; }
 
         /// <summary>
+        /// Property with no string length to demonstrate nvarchar(max) incompatibility with SQLite.
+        /// </summary>
+        [DataMember]
+        [Display(Name = "Data")]
+        public string Data { get; set; }
+
+        /// <summary>
         /// Debatable if this calculated property should be here as it has nothing to do with the database and could be interpreted as a violation separating concerns.
         /// </summary>
         [NotMapped]
